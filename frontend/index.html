@@ -6,8 +6,17 @@
     <title>HH Port Analytics</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: white; padding: 30px; }
-        .dashboard-container { max-width: 1000px; margin: auto; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: white; padding: 20px; margin: 0; }
+        
+        /* Layout Structure */
+        .dashboard-wrapper { display: flex; gap: 20px; max-width: 1200px; margin: auto; align-items: flex-start; }
+        
+        .sidebar { width: 200px; background: #1e293b; padding: 20px; border-radius: 12px; height: fit-content; flex-shrink: 0; }
+        .sidebar a { display: block; color: #cbd5e1; text-decoration: none; padding: 10px 0; transition: 0.3s; }
+        .sidebar a:hover { color: #38bdf8; }
+
+        .dashboard-container { flex-grow: 1; max-width: 1000px; }
+        
         h1 { font-weight: 800; font-size: 2.5em; color: #38bdf8; margin-bottom: 20px; text-align: center; }
         
         .port-nav { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 30px; }
@@ -18,14 +27,30 @@
         
         .leaflet-popup-content-wrapper { background: #1e293b; color: white; border-radius: 20px; text-align: center; }
         .view-details-btn { display: block; margin-top: 10px; background: #38bdf8; color: white; padding: 8px; border-radius: 15px; text-decoration: none; font-weight: bold; }
+
+        @media (max-width: 768px) {
+            .dashboard-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; text-align: center; box-sizing: border-box; }
+        }
     </style>
 </head>
 <body>
 
-<div class="dashboard-container">
-    <h1>HH Port Analytics</h1>
-    <div class="port-nav" id="port-list">Loading ports from database...</div>
-    <div id="map"></div>
+<div class="dashboard-wrapper">
+    <aside class="sidebar">
+        <h3>Menu</h3>
+        <a href="index.html">Dashboard</a>
+        <a href="#">Analytics</a>
+        <a href="#">Settings</a>
+        <hr style="border: 0; border-top: 1px solid #334155; margin: 20px 0;">
+        <p style="font-size: 0.8em; color: #64748b;">HH Port System v1.0</p>
+    </aside>
+
+    <main class="dashboard-container">
+        <h1>HH Port Analytics</h1>
+        <div class="port-nav" id="port-list">Loading ports from database...</div>
+        <div id="map"></div>
+    </main>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -51,7 +76,6 @@
 
     async function init() {
         try {
-            // Using relative path for Render deployment
             const res = await fetch('/api/analytics');
             if (!res.ok) throw new Error("API request failed");
             
@@ -68,7 +92,7 @@
             });
         } catch (err) { 
             console.error("Error loading ports:", err); 
-            document.getElementById('port-list').innerText = "Error loading data. Check console.";
+            document.getElementById('port-list').innerText = "Error loading data.";
         }
     }
 
