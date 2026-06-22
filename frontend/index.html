@@ -51,7 +51,7 @@
 
     async function init() {
         try {
-            const res = await fetch('http://localhost:5000/api/analytics');
+            const res = await fetch('/api/analytics');
             const ports = await res.json();
             const list = document.getElementById('port-list');
             list.innerHTML = '';
