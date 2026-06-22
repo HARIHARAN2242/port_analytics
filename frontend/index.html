@@ -40,58 +40,59 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const map = L.map('map').setView([20, 30], 3);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    // 1. Initialize map with world-view constraints
+    const map = L.map('map', {
+        worldCopyJump: false, 
+        maxBounds: [[-90, -180], [90, 180]]
+    }).setView([20, 0], 2);
 
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        noWrap: true, 
+        minZoom: 2
+    }).addTo(map);
+
+    let markers = [];
     let dataRefreshInterval;
 
-    function toggleSubmenu() {
-        const sub = document.getElementById('port-submenu');
-        sub.style.display = sub.style.display === 'block' ? 'none' : 'block';
-    }
-
-    async function refreshMapData() {
+    // 2. Fetch ports and add them as markers
+    async function loadMapMarkers() {
         try {
             const res = await fetch('/api/analytics');
             const ports = await res.json();
-            console.log("Dashboard data updated:", ports);
-            // Add your logic to update map markers here
-        } catch (err) {
-            console.error("Failed to refresh data", err);
-        }
+
+            // Clear old markers
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+
+            ports.forEach(p => {
+                if (p.lat && p.lng) {
+                    const marker = L.marker([p.lat, p.lng]).addTo(map);
+                    marker.bindPopup(`
+                        <b>${p.port_name}</b><br>
+                        <a href="details.html" onclick="localStorage.setItem('selectedPort', '${p.port_name}')">View Details</a>
+                    `);
+                    markers.push(marker);
+                }
+            });
+        } catch (err) { console.error("Error loading markers:", err); }
     }
 
+    // 3. Setup dashboard logic
     async function init() {
-        // 1. Highlight Active Link
+        // Highlight active menu
         const path = window.location.pathname;
         const pageName = path.split('/').pop() || 'index.html';
         document.querySelectorAll('.menu-item').forEach(link => {
             if(link.getAttribute('href') === pageName) {
                 link.style.color = 'var(--blue)';
                 link.style.borderLeft = '4px solid var(--blue)';
-                link.style.paddingLeft = '10px';
             }
         });
 
-        // 2. Load Ports
-        try {
-            const res = await fetch('/api/analytics');
-            const ports = await res.json();
-            const sub = document.getElementById('port-submenu');
-            ports.forEach(p => {
-                const a = document.createElement('a');
-                a.className = 'port-sub-item';
-                a.innerText = p.port_name;
-                a.href = 'details.html';
-                a.onclick = () => localStorage.setItem('selectedPort', p.port_name);
-                sub.appendChild(a);
-            });
-        } catch (err) { console.error("Failed to load ports", err); }
-
-        // 3. Set Refresh Interval
-        if (dataRefreshInterval) clearInterval(dataRefreshInterval);
+        // Load data initially and start refresh interval
+        await loadMapMarkers();
         const refreshRate = parseInt(localStorage.getItem('userRefresh')) || 5;
-        dataRefreshInterval = setInterval(refreshMapData, refreshRate * 60000);
+        dataRefreshInterval = setInterval(loadMapMarkers, refreshRate * 60000);
     }
 
     init();
