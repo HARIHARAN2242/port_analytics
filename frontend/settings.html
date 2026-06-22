@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | HH Port Analytics</title>
+    <style>
+        :root { --bg: #ffffff; --text: #0f172a; --blue: #0ea5e9; --sidebar: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; }
+        
+        /* Sidebar */
+        .sidebar { width: 250px; background: var(--sidebar); height: 100vh; padding: 20px; border-right: 1px solid #e2e8f0; }
+        .menu-item { display: block; padding: 12px 0; color: #64748b; text-decoration: none; font-weight: 600; }
+        .menu-item:hover { color: var(--blue); }
+
+        /* Settings Content */
+        .content { padding: 60px; max-width: 600px; }
+        h1 { color: var(--blue); }
+        .setting-group { margin-bottom: 30px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; }
+        label { display: block; font-weight: bold; margin-bottom: 10px; }
+        select, button { padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; width: 100%; }
+        button { background: var(--blue); color: white; border: none; cursor: pointer; font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <h3>HH Port System</h3>
+    <a href="index.html" class="menu-item">Dashboard</a>
+    <a href="about.html" class="menu-item">About</a>
+    <a href="settings.html" class="menu-item" style="color: var(--blue);">Settings</a>
+</aside>
+
+<main class="content">
+    <h1>System Settings</h1>
+    
+    <div class="setting-group">
+        <label>Measurement Units</label>
+        <select id="units">
+            <option value="metric">Metric (km/h, Tons)</option>
+            <option value="imperial">Imperial (mph, Short Tons)</option>
+        </select>
+    </div>
+
+    <div class="setting-group">
+        <label>Refresh Rate</label>
+        <select id="refresh">
+            <option value="5">5 Minutes</option>
+            <option value="15">15 Minutes</option>
+            <option value="60">1 Hour</option>
+        </select>
+    </div>
+
+    <button onclick="saveSettings()">Save Preferences</button>
+</main>
+
+<script>
+    function saveSettings() {
+        const units = document.getElementById('units').value;
+        const refresh = document.getElementById('refresh').value;
+        localStorage.setItem('userUnits', units);
+        localStorage.setItem('userRefresh', refresh);
+        alert('Settings saved successfully!');
+    }
+</script>
+
+</body>
+</html>
