@@ -8,10 +8,10 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: white; padding: 20px; margin: 0; }
         
-        /* Layout Structure */
         .dashboard-wrapper { display: flex; gap: 20px; max-width: 1200px; margin: auto; align-items: flex-start; position: relative; }
         
-        /* Sidebar Styling */
+        /* Sidebar & Menu Toggle */
+        .menu-toggle { display: none; background: #38bdf8; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; font-weight: bold; }
         .sidebar { width: 200px; background: #1e293b; padding: 20px; border-radius: 12px; height: fit-content; flex-shrink: 0; }
         .sidebar a { display: block; color: #cbd5e1; text-decoration: none; padding: 10px 0; transition: 0.3s; }
         .sidebar a:hover { color: #38bdf8; }
@@ -20,20 +20,18 @@
         h1 { font-weight: 800; font-size: 2.5em; color: #38bdf8; margin-bottom: 20px; text-align: center; }
         
         .port-nav { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 30px; }
-        .port-btn { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 12px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .port-btn { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 12px 20px; border-radius: 8px; cursor: pointer; }
         .port-btn:hover { background: #38bdf8; color: white; }
 
-        #map { height: 500px; border-radius: 12px; border: 2px solid #334155; background: #0f172a; }
+        /* Fixed Map Styles */
+        #map { height: 500px; width: 100%; border-radius: 12px; border: 2px solid #334155; background: #0f172a; }
         
-        .leaflet-popup-content-wrapper { background: #1e293b; color: white; border-radius: 20px; text-align: center; }
+        .leaflet-popup-content-wrapper { background: #1e293b; color: white; border-radius: 15px; text-align: center; }
         .view-details-btn { display: block; margin-top: 10px; background: #38bdf8; color: white; padding: 8px; border-radius: 15px; text-decoration: none; font-weight: bold; }
-
-        /* Mobile Hamburger Logic */
-        .menu-toggle { display: none; background: #38bdf8; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; font-weight: bold; }
 
         @media (max-width: 768px) {
             .menu-toggle { display: block; }
-            .sidebar { display: none; width: 100%; position: absolute; z-index: 1000; box-sizing: border-box; }
+            .sidebar { display: none; width: 100%; position: absolute; top: 50px; z-index: 1000; box-sizing: border-box; }
             .sidebar.active { display: block; }
         }
     </style>
@@ -46,23 +44,29 @@
     <aside class="sidebar" id="sidebar">
         <h3>Menu</h3>
         <a href="index.html">Dashboard</a>
-        <a href="#" onclick="showAnalytics()">Analytics</a>
+        <a href="#" onclick="toggleSidebar()">Analytics</a>
         <a href="#">Settings</a>
-        <hr style="border: 0; border-top: 1px solid #334155; margin: 20px 0;">
-        <p style="font-size: 0.8em; color: #64748b;">HH Port System v1.0</p>
     </aside>
 
     <main class="dashboard-container">
         <h1>HH Port Analytics</h1>
-        <div class="port-nav" id="port-list">Loading ports from database...</div>
+        <div class="port-nav" id="port-list">Loading...</div>
         <div id="map"></div>
     </main>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const map = L.map('map', { worldCopyJump: false }).setView([20, 45], 3);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { noWrap: true }).addTo(map);
+    // FIX 3: worldCopyJump false and specific bounds prevent map from shrinking/tiling incorrectly
+    const map = L.map('map', { 
+        worldCopyJump: false, 
+        minZoom: 2 
+    }).setView([20, 45], 3);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+        noWrap: true,
+        bounds: [[-90, -180], [90, 180]]
+    }).addTo(map);
 
     const portCoords = {
         "King Abdullah City": [22.455, 39.101], "Djibouti": [11.825, 42.590],
@@ -74,18 +78,7 @@
 
     let activeMarker = null;
 
-    // Toggle Sidebar visibility
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('active');
-    }
-
-    // Analytics: Ensure list is shown, close sidebar on mobile
-    function showAnalytics() {
-        document.getElementById('port-list').scrollIntoView({ behavior: 'smooth' });
-        if (window.innerWidth <= 768) {
-            toggleSidebar();
-        }
-    }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
 
     async function init() {
         try {
@@ -100,17 +93,18 @@
                 btn.onclick = () => highlightPort(p.port_name);
                 list.appendChild(btn);
             });
-        } catch (err) { console.error("Error loading ports:", err); }
+        } catch (err) { console.error("Error:", err); }
     }
 
     function highlightPort(name) {
         const coords = portCoords[name];
+        // FIX 2: Replaced circleMarker with standard L.marker for a pin look
         if (activeMarker) map.removeLayer(activeMarker);
-        map.flyTo(coords, 8, { duration: 1.5 });
-        activeMarker = L.circleMarker(coords, { radius: 12, fillColor: "#38bdf8", color: "white", fillOpacity: 0.8 }).addTo(map);
+        map.flyTo(coords, 6, { duration: 1.5 });
+        activeMarker = L.marker(coords).addTo(map);
         activeMarker.bindPopup(`
-            <div style="padding:10px;">
-                <h3 style="margin:0;">${name}</h3>
+            <div style="padding:5px;">
+                <h4 style="margin:0;">${name}</h4>
                 <a href="details.html" class="view-details-btn" onclick="localStorage.setItem('selectedPort', '${name}')">View Details</a>
             </div>
         `).openPopup();
