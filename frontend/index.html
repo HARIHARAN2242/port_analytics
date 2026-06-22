@@ -2,114 +2,63 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HH Port Analytics</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: white; padding: 20px; margin: 0; }
+        :root { --bg: #ffffff; --text: #0f172a; --blue: #0ea5e9; --sidebar: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; }
         
-        .dashboard-wrapper { display: flex; gap: 20px; max-width: 1200px; margin: auto; align-items: flex-start; position: relative; }
+        .sidebar { width: 250px; background: var(--sidebar); height: 100vh; padding: 20px; border-right: 1px solid #e2e8f0; }
+        .menu-item { display: block; padding: 12px 0; color: #64748b; text-decoration: none; font-weight: 600; }
+        .menu-item:hover { color: var(--blue); }
         
-        /* Sidebar & Menu Toggle */
-        .menu-toggle { display: none; background: #38bdf8; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; font-weight: bold; }
-        .sidebar { width: 200px; background: #1e293b; padding: 20px; border-radius: 12px; height: fit-content; flex-shrink: 0; }
-        .sidebar a { display: block; color: #cbd5e1; text-decoration: none; padding: 10px 0; transition: 0.3s; }
-        .sidebar a:hover { color: #38bdf8; }
+        /* Analytics Sub-menu */
+        #port-submenu { display: none; padding-left: 15px; font-size: 0.9em; }
+        .port-sub-item { display: block; padding: 5px 0; color: #94a3b8; text-decoration: none; }
 
-        .dashboard-container { flex-grow: 1; max-width: 1000px; }
-        h1 { font-weight: 800; font-size: 2.5em; color: #38bdf8; margin-bottom: 20px; text-align: center; }
+        .dashboard-container { flex-grow: 1; padding: 40px; }
+        #map { height: 500px; width: 100%; border-radius: 12px; border: 1px solid #e2e8f0; }
         
-        .port-nav { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 30px; }
-        .port-btn { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 12px 20px; border-radius: 8px; cursor: pointer; }
-        .port-btn:hover { background: #38bdf8; color: white; }
-
-        /* Fixed Map Styles */
-        #map { height: 500px; width: 100%; border-radius: 12px; border: 2px solid #334155; background: #0f172a; }
-        
-        .leaflet-popup-content-wrapper { background: #1e293b; color: white; border-radius: 15px; text-align: center; }
-        .view-details-btn { display: block; margin-top: 10px; background: #38bdf8; color: white; padding: 8px; border-radius: 15px; text-decoration: none; font-weight: bold; }
-
-        @media (max-width: 768px) {
-            .menu-toggle { display: block; }
-            .sidebar { display: none; width: 100%; position: absolute; top: 50px; z-index: 1000; box-sizing: border-box; }
-            .sidebar.active { display: block; }
-        }
+        @media (max-width: 768px) { .sidebar { position: absolute; display: none; } }
     </style>
 </head>
 <body>
 
-<button class="menu-toggle" onclick="toggleSidebar()">☰ Menu</button>
+<aside class="sidebar">
+    <h3>HH Port System</h3>
+    <a href="index.html" class="menu-item">Dashboard</a>
+    <a href="#" class="menu-item" onclick="toggleSubmenu()">Analytics ▾</a>
+    <div id="port-submenu"></div>
+    <a href="about.html" class="menu-item">About</a>
+    <a href="settings.html" class="menu-item">Settings</a>
+</aside>
 
-<div class="dashboard-wrapper">
-    <aside class="sidebar" id="sidebar">
-        <h3>Menu</h3>
-        <a href="index.html">Dashboard</a>
-        <a href="#" onclick="toggleSidebar()">Analytics</a>
-        <a href="#">Settings</a>
-    </aside>
+<main class="dashboard-container">
+    <h1>Port Analytics Map</h1>
+    <div id="map"></div>
+</main>
 
-    <main class="dashboard-container">
-        <h1>HH Port Analytics</h1>
-        <div class="port-nav" id="port-list">Loading...</div>
-        <div id="map"></div>
-    </main>
-</div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // FIX 3: worldCopyJump false and specific bounds prevent map from shrinking/tiling incorrectly
-    const map = L.map('map', { 
-        worldCopyJump: false, 
-        minZoom: 2 
-    }).setView([20, 45], 3);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-        noWrap: true,
-        bounds: [[-90, -180], [90, 180]]
-    }).addTo(map);
-
-    const portCoords = {
-        "King Abdullah City": [22.455, 39.101], "Djibouti": [11.825, 42.590],
-        "Mina Khalifa": [24.846, 54.673], "Jeddah": [21.529, 39.161],
-        "Mundra": [22.848, 69.704], "Jebel Ali": [24.985, 55.027],
-        "Port Louis": [-20.160, 57.497], "Salalah": [16.940, 54.005],
-        "Mombasa": [-4.043, 39.668], "Colombo": [6.958, 79.843]
-    };
-
-    let activeMarker = null;
-
-    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
-
-    async function init() {
-        try {
-            const res = await fetch('/api/analytics');
-            const ports = await res.json();
-            const list = document.getElementById('port-list');
-            list.innerHTML = '';
-            ports.forEach(p => {
-                const btn = document.createElement('button');
-                btn.className = 'port-btn';
-                btn.innerText = p.port_name;
-                btn.onclick = () => highlightPort(p.port_name);
-                list.appendChild(btn);
-            });
-        } catch (err) { console.error("Error:", err); }
+    function toggleSubmenu() {
+        const sub = document.getElementById('port-submenu');
+        sub.style.display = sub.style.display === 'block' ? 'none' : 'block';
     }
 
-    function highlightPort(name) {
-        const coords = portCoords[name];
-        // FIX 2: Replaced circleMarker with standard L.marker for a pin look
-        if (activeMarker) map.removeLayer(activeMarker);
-        map.flyTo(coords, 6, { duration: 1.5 });
-        activeMarker = L.marker(coords).addTo(map);
-        activeMarker.bindPopup(`
-            <div style="padding:5px;">
-                <h4 style="margin:0;">${name}</h4>
-                <a href="details.html" class="view-details-btn" onclick="localStorage.setItem('selectedPort', '${name}')">View Details</a>
-            </div>
-        `).openPopup();
+    async function loadPorts() {
+        const res = await fetch('/api/analytics');
+        const ports = await res.json();
+        const sub = document.getElementById('port-submenu');
+        ports.forEach(p => {
+            const a = document.createElement('a');
+            a.className = 'port-sub-item';
+            a.innerText = p.port_name;
+            // Link to details and store selection
+            a.href = 'details.html';
+            a.onclick = () => localStorage.setItem('selectedPort', p.port_name);
+            sub.appendChild(a);
+        });
     }
-    init();
+    loadPorts();
 </script>
 </body>
 </html>
