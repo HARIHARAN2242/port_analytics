@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HH Port Analytics</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -33,7 +34,6 @@
     const map = L.map('map', { worldCopyJump: false }).setView([20, 45], 3);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { noWrap: true }).addTo(map);
 
-    // Map database names to coordinates
     const portCoords = {
         "King Abdullah City": [22.455, 39.101],
         "Djibouti": [11.825, 42.590],
@@ -51,7 +51,10 @@
 
     async function init() {
         try {
+            // Using relative path for Render deployment
             const res = await fetch('/api/analytics');
+            if (!res.ok) throw new Error("API request failed");
+            
             const ports = await res.json();
             const list = document.getElementById('port-list');
             list.innerHTML = '';
@@ -63,7 +66,10 @@
                 btn.onclick = () => highlightPort(p.port_name);
                 list.appendChild(btn);
             });
-        } catch (err) { console.error("Error loading ports:", err); }
+        } catch (err) { 
+            console.error("Error loading ports:", err); 
+            document.getElementById('port-list').innerText = "Error loading data. Check console.";
+        }
     }
 
     function highlightPort(name) {
