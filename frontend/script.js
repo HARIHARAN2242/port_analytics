@@ -1,6 +1,12 @@
-// frontend/script.js
 async function loadPorts() {
-    const response = await fetch('http://localhost:5000/api/analytics');
+    // CHANGE THIS: Use the relative API path instead of the website URL
+    const response = await fetch('/api/analytics'); 
+    
+    if (!response.ok) {
+        console.error("Failed to fetch data:", response.statusText);
+        return;
+    }
+
     const data = await response.json();
     const grid = document.getElementById('port-grid');
 
@@ -11,7 +17,6 @@ async function loadPorts() {
         const box = document.createElement('div');
         box.className = 'port-box';
         box.innerText = port;
-        // Clicking a box saves the port name in browser storage and redirects
         box.onclick = () => {
             localStorage.setItem('selectedPort', port);
             window.location.href = 'details.html';

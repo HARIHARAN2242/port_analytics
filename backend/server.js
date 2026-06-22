@@ -12,6 +12,15 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
+const path = require('path');
+
+// Serve static files from the 'frontend' folder
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+// Handle root URL by serving index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
+});
 
 // Route for analytics list
 app.get('/api/analytics', async (req, res) => {
