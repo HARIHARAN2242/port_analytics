@@ -10,16 +10,17 @@
         
         /* Sidebar */
         .sidebar { width: 250px; background: var(--sidebar); height: 100vh; padding: 20px; border-right: 1px solid #e2e8f0; }
-        .menu-item { display: block; padding: 12px 0; color: #64748b; text-decoration: none; font-weight: 600; }
+        .menu-item { display: block; padding: 12px 0; color: #64748b; text-decoration: none; font-weight: 600; border-left: 4px solid transparent; transition: 0.3s; }
         .menu-item:hover { color: var(--blue); }
 
-        /* Settings Content */
+        /* Content */
         .content { padding: 60px; max-width: 600px; }
         h1 { color: var(--blue); }
         .setting-group { margin-bottom: 30px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; }
         label { display: block; font-weight: bold; margin-bottom: 10px; }
         select, button { padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; width: 100%; }
-        button { background: var(--blue); color: white; border: none; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        button { background: var(--blue); color: white; border: none; cursor: pointer; font-weight: bold; margin-top: 10px; transition: opacity 0.2s; }
+        button:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -28,7 +29,7 @@
     <h3>HH Port System</h3>
     <a href="index.html" class="menu-item">Dashboard</a>
     <a href="about.html" class="menu-item">About</a>
-    <a href="settings.html" class="menu-item" style="color: var(--blue);">Settings</a>
+    <a href="settings.html" class="menu-item">Settings</a>
 </aside>
 
 <main class="content">
@@ -55,11 +56,26 @@
 </main>
 
 <script>
+    // Load previously saved settings
+    window.onload = () => {
+        if(localStorage.getItem('userUnits')) document.getElementById('units').value = localStorage.getItem('userUnits');
+        if(localStorage.getItem('userRefresh')) document.getElementById('refresh').value = localStorage.getItem('userRefresh');
+        
+        // Highlight active link
+        const path = window.location.pathname;
+        const pageName = path.split('/').pop() || 'index.html';
+        document.querySelectorAll('.menu-item').forEach(link => {
+            if(link.getAttribute('href') === pageName) {
+                link.style.color = 'var(--blue)';
+                link.style.borderLeft = '4px solid var(--blue)';
+                link.style.paddingLeft = '10px';
+            }
+        });
+    };
+
     function saveSettings() {
-        const units = document.getElementById('units').value;
-        const refresh = document.getElementById('refresh').value;
-        localStorage.setItem('userUnits', units);
-        localStorage.setItem('userRefresh', refresh);
+        localStorage.setItem('userUnits', document.getElementById('units').value);
+        localStorage.setItem('userRefresh', document.getElementById('refresh').value);
         alert('Settings saved successfully!');
     }
 </script>

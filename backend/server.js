@@ -63,5 +63,18 @@ app.get('/api/download/:portName', async (req, res) => {
     }
 });
 
+// ... existing code (routes, app.use, etc.)
+
+// Global Error Handling Middleware
+app.use((err, req, res, next) => {
+    console.error("Global Server Error:", err.stack);
+    res.status(500).json({ 
+        success: false, 
+        message: "Something went wrong on the server. Please try again later." 
+    });
+});
+
+app.listen(3000, () => console.log("Server running on port 3000"));
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

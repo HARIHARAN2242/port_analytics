@@ -19,7 +19,6 @@
         .stat-card p { margin: 10px 0 0 0; font-size: 1.5em; font-weight: bold; }
         
         .download-btn { background: var(--blue); color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; border: none; font-weight: bold; }
-        
         .chart-wrapper { position: relative; width: 100%; height: 350px; }
     </style>
 </head>
@@ -43,6 +42,22 @@
     const portName = localStorage.getItem('selectedPort');
     if (!portName) window.location.href = 'index.html';
     document.getElementById('port-title').innerText = portName;
+
+    // Handle CSV Download
+    document.getElementById('downloadBtn').onclick = async () => {
+        try {
+            const response = await fetch(`/api/download/${encodeURIComponent(portName)}`);
+            if (!response.ok) throw new Error("Download failed");
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${portName.replace(/\s+/g, '_')}_data.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } catch (err) { alert("Could not download file."); }
+    };
 
     // Data Fetching and Chart Rendering
     async function loadData() {

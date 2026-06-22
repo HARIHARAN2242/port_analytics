@@ -8,9 +8,9 @@
         :root { --bg: #ffffff; --text: #0f172a; --blue: #0ea5e9; --sidebar: #f8fafc; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; }
         
-        /* Sidebar styling to match index */
+        /* Sidebar styling */
         .sidebar { width: 250px; background: var(--sidebar); height: 100vh; padding: 20px; border-right: 1px solid #e2e8f0; }
-        .menu-item { display: block; padding: 12px 0; color: #64748b; text-decoration: none; font-weight: 600; }
+        .menu-item { display: block; padding: 12px 0; color: #64748b; text-decoration: none; font-weight: 600; border-left: 4px solid transparent; transition: 0.3s; }
         .menu-item:hover { color: var(--blue); }
 
         /* About Content */
@@ -25,7 +25,7 @@
 <aside class="sidebar">
     <h3>HH Port System</h3>
     <a href="index.html" class="menu-item">Dashboard</a>
-    <a href="about.html" class="menu-item" style="color: var(--blue);">About</a>
+    <a href="about.html" class="menu-item">About</a>
     <a href="settings.html" class="menu-item">Settings</a>
 </aside>
 
@@ -44,5 +44,22 @@
     </p>
 </main>
 
+<script>
+    // Highlight the active page in the sidebar
+    function highlightActiveLink() {
+        const path = window.location.pathname;
+        const pageName = path.split('/').pop() || 'index.html'; 
+        
+        document.querySelectorAll('.menu-item').forEach(link => {
+            if(link.getAttribute('href') === pageName) {
+                link.style.color = 'var(--blue)';
+                link.style.borderLeft = '4px solid var(--blue)';
+                link.style.paddingLeft = '10px';
+            }
+        });
+    }
+
+    window.onload = highlightActiveLink;
+</script>
 </body>
 </html>
