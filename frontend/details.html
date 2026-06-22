@@ -11,6 +11,14 @@
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 30px 0; }
         .stat-card { background: #334155; padding: 20px; border-radius: 8px; border-left: 5px solid #38bdf8; }
         .download-btn { background: #10b981; color: white; padding: 10px 20px; border-radius: 6px; cursor: pointer; border: none; font-weight: bold; }
+        
+        /* Responsive chart container */
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -21,14 +29,16 @@
         <button id="downloadBtn" class="download-btn">Download Full CSV</button>
     </div>
     <div class="stats-grid" id="data-container"></div>
-    <canvas id="portChart"></canvas>
+    
+    <div class="chart-wrapper">
+        <canvas id="portChart"></canvas>
+    </div>
 </div>
 
 <script>
     const portName = localStorage.getItem('selectedPort');
     document.getElementById('port-title').innerText = portName || "No Port Selected";
 
-    // 1. Handle CSV Download (Relative path)
     document.getElementById('downloadBtn').onclick = async () => {
         if (!portName) return;
         try {
@@ -45,11 +55,10 @@
             a.remove();
         } catch (err) {
             console.error(err);
-            alert("Could not download file. Please check server connection.");
+            alert("Could not download file.");
         }
     };
 
-    // 2. Load Dashboard Data (Relative path)
     async function loadData() {
         if (!portName) return;
         try {
@@ -65,7 +74,6 @@
                     <div class="stat-card"><h3>At Berth</h3><p>${latest.vessels_at_berth || 0}</p></div>
                 `;
                 
-                // Render Chart
                 const ctx = document.getElementById('portChart').getContext('2d');
                 new Chart(ctx, {
                     type: 'line',
@@ -75,8 +83,20 @@
                             label: 'Delay Trends (Days)', 
                             data: data.map(d => d.graph_value_days), 
                             borderColor: '#38bdf8',
-                            tension: 0.1 
+                            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 3
                         }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false, // Critical for mobile responsiveness
+                        plugins: { legend: { labels: { color: 'white' } } },
+                        scales: {
+                            x: { ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 45 } },
+                            y: { ticks: { color: '#94a3b8' } }
+                        }
                     }
                 });
             }
