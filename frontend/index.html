@@ -350,6 +350,7 @@ async function refreshData() {
 
         const ports =
             await response.json();
+            document.getElementById('portCount').innerText = ports.length;
 
         // Remove old markers
         markers.forEach(marker =>
