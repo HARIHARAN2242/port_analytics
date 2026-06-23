@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -35,6 +34,7 @@ body{
     background:var(--sidebar);
     padding:20px;
     border-right:1px solid #e2e8f0;
+    overflow-y:auto;
 }
 
 .menu-item{
@@ -73,173 +73,254 @@ body{
 
 h1{
     margin-bottom:20px;
+    color:#0f172a;
 }
 
 #map{
-    height:600px;
+    height:650px;
     width:100%;
     border-radius:12px;
     border:1px solid #e2e8f0;
 }
-</style>
 
+.anchor-marker{
+    font-size:28px;
+    text-align:center;
+    line-height:30px;
+    background:transparent;
+    border:none;
+}
+
+.leaflet-tooltip{
+    font-weight:bold;
+    font-size:14px;
+}
+
+@media(max-width:768px){
+    .sidebar{
+        display:none;
+    }
+}
+</style>
 </head>
 
 <body>
 
 <aside class="sidebar">
+
     <h2>HH Port System</h2>
+
     <br>
 
-```
-<a href="index.html" class="menu-item">Dashboard</a>
+    <a href="index.html" class="menu-item">
+        Dashboard
+    </a>
 
-<a href="#" class="menu-item" onclick="toggleSubmenu()">
-    Analytics ▾
-</a>
+    <a href="#" class="menu-item" onclick="toggleSubmenu()">
+        Analytics ▾
+    </a>
 
-<div id="port-submenu"></div>
+    <div id="port-submenu"></div>
 
-<a href="about.html" class="menu-item">About</a>
-<a href="settings.html" class="menu-item">Settings</a>
-```
+    <a href="about.html" class="menu-item">
+        About
+    </a>
+
+    <a href="settings.html" class="menu-item">
+        Settings
+    </a>
 
 </aside>
 
 <main class="dashboard-container">
+
     <h1>Global Port Analytics</h1>
+
     <div id="map"></div>
+
 </main>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 
-const map = L.map('map').setView([20,0],2);
+// Fixed world map
+const map = L.map('map', {
+    worldCopyJump: false,
+    maxBounds: [
+        [-90, -180],
+        [90, 180]
+    ],
+    maxBoundsViscosity: 1.0,
+    minZoom: 2
+}).setView([15, 55], 3);
 
+// Non-repeating map
 L.tileLayer(
-'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-{
-    maxZoom:18
-}
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+        noWrap: true,
+        minZoom: 2,
+        maxZoom: 8,
+        attribution: '&copy; OpenStreetMap'
+    }
 ).addTo(map);
 
-let markers=[];
+let markers = [];
 
-const anchorIcon = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+// Anchor emoji icon
+const anchorIcon = L.divIcon({
+    html: '⚓',
+    className: 'anchor-marker',
     iconSize: [30, 30],
-    iconAnchor: [15, 30],
-    popupAnchor: [0, -30]
+    iconAnchor: [15, 15]
 });
 
-function toggleSubmenu(){
-    const sub=document.getElementById('port-submenu');
+function toggleSubmenu() {
 
-    if(sub.style.display==="block"){
-        sub.style.display="none";
-    }else{
-        sub.style.display="block";
-    }
+    const submenu =
+        document.getElementById('port-submenu');
+
+    submenu.style.display =
+        submenu.style.display === 'block'
+            ? 'none'
+            : 'block';
 }
 
-async function refreshData(){
+async function refreshData() {
 
-    try{
+    try {
 
-        const response=await fetch('/api/analytics');
-        const ports=await response.json();
+        const response =
+            await fetch('/api/analytics');
 
-        markers.forEach(m=>map.removeLayer(m));
-        markers=[];
+        const ports =
+            await response.json();
 
-        const submenu=document.getElementById('port-submenu');
-        submenu.innerHTML='';
+        // Remove old markers
+        markers.forEach(marker =>
+            map.removeLayer(marker)
+        );
 
-        const bounds=[];
+        markers = [];
 
-        ports.forEach(port=>{
+        // Sidebar
+        const submenu =
+            document.getElementById('port-submenu');
 
-            const item=document.createElement('a');
+        submenu.innerHTML = '';
 
-            item.className='port-sub-item';
-            item.innerText=port.port_name;
-            item.href='details.html';
+        ports.forEach(port => {
 
-            item.onclick=()=>{
+            // Sidebar item
+            const item =
+                document.createElement('a');
+
+            item.className =
+                'port-sub-item';
+
+            item.innerText =
+                port.port_name;
+
+            item.href =
+                'details.html';
+
+            item.onclick = () => {
+
                 localStorage.setItem(
                     'selectedPort',
                     port.port_name
                 );
+
             };
 
             submenu.appendChild(item);
 
-            if(
-                port.lat===null ||
-                port.lng===null ||
-                port.lat===undefined ||
-                port.lng===undefined
-            ){
+            // Skip invalid coordinates
+            if (
+                port.lat === null ||
+                port.lng === null ||
+                port.lat === undefined ||
+                port.lng === undefined
+            ) {
                 return;
             }
 
-            const lat=parseFloat(port.lat);
-            const lng=parseFloat(port.lng);
+            const lat =
+                parseFloat(port.lat);
 
-            bounds.push([lat,lng]);
+            const lng =
+                parseFloat(port.lng);
 
-            const marker = L.marker(
-            [lat, lng],
-            { icon: anchorIcon }
-            ).addTo(map);
-            marker.bindTooltip(port.port_name, {
-    permanent: false,
-    direction: 'top',
-    offset: [0, -20]
-});
-       marker.bindPopup(`
-<div style="text-align:center;">
-    <h3>${port.port_name}</h3>
+            const marker =
+                L.marker(
+                    [lat, lng],
+                    {
+                        icon: anchorIcon
+                    }
+                ).addTo(map);
 
-    <button
-        onclick="
-        localStorage.setItem(
-            'selectedPort',
-            '${port.port_name}'
-        );
-        window.location.href='details.html';
-        "
-        style="
-            background:#0ea5e9;
-            color:white;
-            border:none;
-            padding:8px 15px;
-            border-radius:8px;
-            cursor:pointer;
-        "
-    >
-        Analytics
-    </button>
-</div>
-`);
-   
+            // Hover shows port name
+            marker.bindTooltip(
+                port.port_name,
+                {
+                    permanent: false,
+                    direction: 'top',
+                    offset: [0, -10]
+                }
+            );
+
+            // Click popup
+            marker.bindPopup(`
+                <div style="text-align:center;">
+                    <h3>${port.port_name}</h3>
+
+                    <button
+                        onclick="
+                            localStorage.setItem(
+                                'selectedPort',
+                                '${port.port_name}'
+                            );
+                            window.location.href='details.html';
+                        "
+                        style="
+                            background:#0ea5e9;
+                            color:white;
+                            border:none;
+                            padding:8px 15px;
+                            border-radius:8px;
+                            cursor:pointer;
+                            font-weight:bold;
+                        "
+                    >
+                        Analytics
+                    </button>
+                </div>
+            `);
+
             markers.push(marker);
 
         });
 
-        if(bounds.length > 0){
-    map.fitBounds(bounds, {
-        padding: [50, 50]
-    });
-}
+    }
+    catch(error){
 
-    }catch(error){
-        console.error(error);
+        console.error(
+            'Error loading data:',
+            error
+        );
+
     }
 }
 
+// Initial load
 refreshData();
+
+// Refresh every 5 minutes
+setInterval(
+    refreshData,
+    5 * 60 * 1000
+);
 
 </script>
 
