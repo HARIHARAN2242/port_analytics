@@ -29,7 +29,19 @@ app.get('/api/analytics', async (req, res) => {
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
+// This is the "doorway" for your frontend
+app.get('/api/analytics', async (req, res) => {
+    try {
+        // This query fetches the data from your Supabase table
+        const result = await pool.query("SELECT port_name, lat, lng FROM postgres10");
+        
+        // Send the data back as JSON
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Database Query Error:", err);
+        res.status(500).send("Database error, check server logs.");
+    }
+});
 // Route for specific port details
 app.get('/api/port-details/:name', async (req, res) => {
     try {
