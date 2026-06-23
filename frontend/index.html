@@ -511,16 +511,20 @@
 
                         if (marker) {
 
-                            map.setView(
-                                marker.getLatLng(),
+                            const latlng = marker.getLatLng();
+
+                            map.flyTo(
+                                latlng,
                                 6,
                                 {
-                                    animate: true
+                                    animate: true,
+                                    duration: 1.5
                                 }
                             );
 
-                            marker.openPopup();
-
+                            setTimeout(() => {
+                                marker.openPopup();
+                            }, 1500);
                         }
                     };
 
