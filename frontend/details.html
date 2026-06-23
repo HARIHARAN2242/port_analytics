@@ -6,6 +6,43 @@
     <title>Port Details | HH Port Analytics</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        .updated-time{
+    color:#64748b;
+    margin-bottom:20px;
+}
+       .metrics-row{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+    margin:25px 0;
+}
+
+.metric-box{
+    background:white;
+    border:1px solid #e2e8f0;
+    border-radius:12px;
+    padding:15px;
+    text-align:center;
+}
+
+.metric-box h4{
+    color:#64748b;
+}
+
+.metric-box p{
+    color:#0ea5e9;
+    font-size:22px;
+    font-weight:700;
+} 
+        .status-banner{
+    background:#fee2e2;
+    color:#b91c1c;
+    padding:15px;
+    border-left:6px solid #ef4444;
+    border-radius:10px;
+    font-weight:600;
+    margin-bottom:20px;
+}
         :root { --bg: #ffffff; --text: #0f172a; --blue: #0ea5e9; --card: #f8fafc; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); padding: 40px; margin: 0; }
         .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 12px; border: 1px solid #e2e8f0; }
@@ -31,8 +68,36 @@
     </div>
     
     <h1 id="port-title">Loading Port...</h1>
+    <p class="updated-time">
+    Last Updated: 23 June 2026 • 2:05 PM
+</p>
     <div class="stats-grid" id="data-container"></div>
-    
+    <div class="status-banner">
+    ⚠ Current Operational Status: Heavily Disrupted Operations
+    <div class="metrics-row">
+
+    <div class="metric-box">
+        <h4>Average Delay</h4>
+        <p>3.1 Days</p>
+    </div>
+
+    <div class="metric-box">
+        <h4>Maximum Delay</h4>
+        <p>7 Days</p>
+    </div>
+
+    <div class="metric-box">
+        <h4>Minimum Delay</h4>
+        <p>0 Days</p>
+    </div>
+
+    <div class="metric-box">
+        <h4>Records</h4>
+        <p>36</p>
+    </div>
+
+</div>
+</div>
     <div class="chart-wrapper">
         <canvas id="portChart"></canvas>
     </div>
