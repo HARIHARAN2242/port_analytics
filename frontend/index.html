@@ -40,46 +40,51 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 1. Initialize map with world-view constraints
-    const map = L.map('map', {
-        worldCopyJump: false, 
-        maxBounds: [[-90, -180], [90, 180]]
-    }).setView([20, 0], 2);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        noWrap: true, 
-        minZoom: 2
-    }).addTo(map);
+    // 1. Initialize map with constraints
+    const map = L.map('map', { worldCopyJump: false, maxBounds: [[-90, -180], [90, 180]] }).setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { noWrap: true, minZoom: 2 }).addTo(map);
 
     let markers = [];
     let dataRefreshInterval;
 
-    // 2. Fetch ports and add them as markers
-    async function loadMapMarkers() {
+    function toggleSubmenu() {
+        const sub = document.getElementById('port-submenu');
+        sub.style.display = sub.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // 2. Fetch data and update BOTH map and sidebar
+    async function refreshData() {
         try {
             const res = await fetch('/api/analytics');
             const ports = await res.json();
 
-            // Clear old markers
+            // Update Sidebar
+            const sub = document.getElementById('port-submenu');
+            sub.innerHTML = ''; 
+            ports.forEach(p => {
+                const a = document.createElement('a');
+                a.className = 'port-sub-item';
+                a.innerText = p.port_name;
+                a.href = 'details.html';
+                a.onclick = () => localStorage.setItem('selectedPort', p.port_name);
+                sub.appendChild(a);
+            });
+
+            // Update Map
             markers.forEach(m => map.removeLayer(m));
             markers = [];
-
             ports.forEach(p => {
                 if (p.lat && p.lng) {
                     const marker = L.marker([p.lat, p.lng]).addTo(map);
-                    marker.bindPopup(`
-                        <b>${p.port_name}</b><br>
-                        <a href="details.html" onclick="localStorage.setItem('selectedPort', '${p.port_name}')">View Details</a>
-                    `);
+                    marker.bindPopup(`<b>${p.port_name}</b><br><a href="details.html" onclick="localStorage.setItem('selectedPort', '${p.port_name}')">View Details</a>`);
                     markers.push(marker);
                 }
             });
-        } catch (err) { console.error("Error loading markers:", err); }
+        } catch (err) { console.error("Error refreshing data:", err); }
     }
 
-    // 3. Setup dashboard logic
+    // 3. Init
     async function init() {
-        // Highlight active menu
         const path = window.location.pathname;
         const pageName = path.split('/').pop() || 'index.html';
         document.querySelectorAll('.menu-item').forEach(link => {
@@ -89,10 +94,9 @@
             }
         });
 
-        // Load data initially and start refresh interval
-        await loadMapMarkers();
+        await refreshData();
         const refreshRate = parseInt(localStorage.getItem('userRefresh')) || 5;
-        dataRefreshInterval = setInterval(loadMapMarkers, refreshRate * 60000);
+        dataRefreshInterval = setInterval(refreshData, refreshRate * 60000);
     }
 
     init();
