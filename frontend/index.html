@@ -9,6 +9,52 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
+        .live-clock {
+            margin-top: 12px;
+            display: inline-block;
+            padding: 8px 18px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border-radius: 30px;
+            color: white;
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-box h3 {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .stat-box p {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0ea5e9;
+        }
+
+        .online {
+            color: #22c55e !important;
+        }
+
         :root {
             --bg: #f8fafc;
             --text: #0f172a;
@@ -254,9 +300,34 @@
             <div class="hero-overlay">
                 <h1 class="main-title">Maritime Analytics Dashboard</h1>
                 <p class="subtitle">
+
                     Global Port Intelligence & Operational Monitoring
                 </p>
+                <div id="liveClock" class="live-clock"></div>
             </div>
+        </div>
+        <div class="dashboard-stats">
+
+            <div class="stat-box">
+                <h3>Total Ports</h3>
+                <p id="totalPorts">0</p>
+            </div>
+
+            <div class="stat-box">
+                <h3>Average Delay</h3>
+                <p id="avgDelay">0 Days</p>
+            </div>
+
+            <div class="stat-box">
+                <h3>Ships At Berth</h3>
+                <p id="totalBerth">0</p>
+            </div>
+
+            <div class="stat-box">
+                <h3>System Status</h3>
+                <p class="online">LIVE</p>
+            </div>
+
         </div>
 
         <div id="map"></div>
@@ -347,7 +418,7 @@
         }
 
         // Start animation: updates every 50ms
-        setInterval(animateShips, 50);  
+        setInterval(animateShips, 50);
 
         // Anchor emoji icon
         const anchorIcon = L.divIcon({
@@ -367,9 +438,30 @@
                     ? 'none'
                     : 'block';
         }
+        function updateClock() {
+
+            const now = new Date();
+
+            const options = {
+                weekday: 'short',
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+
+            document.getElementById('liveClock').innerHTML =
+                "🟢 LIVE • " +
+                now.toLocaleString('en-IN', options);
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
 
         async function refreshData() {
-            
+            document.getElementById("totalPorts").innerText = ports.length;
 
             try {
 
