@@ -82,7 +82,26 @@
             });
         } catch (err) { console.error("Error refreshing data:", err); }
     }
+    async function loadMapMarkers() {
+    try {
+        const res = await fetch('/api/analytics');
+        const ports = await res.json();
+        
+        // Remove existing markers before drawing new ones
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
 
+        ports.forEach(p => {
+            if (p.lat && p.lng) {
+                const marker = L.marker([p.lat, p.lng]).addTo(map);
+                marker.bindPopup(`<b>${p.port_name}</b>`);
+                markers.push(marker);
+            }
+        });
+    } catch (err) {
+        console.error("Error loading markers:", err);
+    }
+}
     // 3. Init
     async function init() {
         const path = window.location.pathname;
