@@ -389,6 +389,7 @@
         ).addTo(map);
 
         let markers = [];
+        let portMarkers = {};
         // 1. Define the ship icon
         const shipIcon = L.icon({
             iconUrl: 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcSg_f4UUE08zJiLYeHQaKjmGjf6KK6LzR8LPoj5MzBSNbMs-uitwfVKN1Bcn0V7.png', // Replace with your white ship URL
@@ -469,7 +470,7 @@
 
                 const ports =
                     await response.json();
-                    console.log("Ports Loaded:", ports);
+                console.log("Ports Loaded:", ports);
 
                 document.getElementById("totalPorts").innerText = ports.length;
                 document.getElementById("portCount").innerText = ports.length;
@@ -499,16 +500,28 @@
                     item.innerText =
                         port.port_name;
 
-                    item.href =
-                        'details.html';
+                    item.href = "#";
 
-                    item.onclick = () => {
+                    item.onclick = (e) => {
 
-                        localStorage.setItem(
-                            'selectedPort',
-                            port.port_name
-                        );
+                        e.preventDefault();
 
+                        const marker =
+                            portMarkers[port.port_name];
+
+                        if (marker) {
+
+                            map.setView(
+                                marker.getLatLng(),
+                                6,
+                                {
+                                    animate: true
+                                }
+                            );
+
+                            marker.openPopup();
+
+                        }
                     };
 
                     submenu.appendChild(item);
@@ -576,6 +589,8 @@
             `);
 
                     markers.push(marker);
+
+                    portMarkers[port.port_name] = marker;
 
                 });
 
