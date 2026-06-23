@@ -1,124 +1,257 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HH Port Analytics</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        :root { --bg: #ffffff; --text: #0f172a; --blue: #0ea5e9; --sidebar: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; }
-        
-        .sidebar { width: 250px; background: var(--sidebar); height: 100vh; padding: 20px; border-right: 1px solid #e2e8f0; }
-        .menu-item { display: block; padding: 12px 0; color: #64748b; text-decoration: none; font-weight: 600; border-left: 4px solid transparent; transition: 0.3s; }
-        .menu-item:hover { color: var(--blue); }
-        
-        #port-submenu { display: none; padding-left: 15px; font-size: 0.9em; }
-        .port-sub-item { display: block; padding: 5px 0; color: #94a3b8; text-decoration: none; cursor: pointer; }
-        .port-sub-item:hover { color: var(--blue); }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HH Port Analytics</title>
 
-        .dashboard-container { flex-grow: 1; padding: 40px; }
-        #map { height: 500px; width: 100%; border-radius: 12px; border: 1px solid #e2e8f0; }
-        @media (max-width: 768px) { .sidebar { display: none; } }
-    </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+:root{
+    --bg:#ffffff;
+    --text:#0f172a;
+    --blue:#0ea5e9;
+    --sidebar:#f8fafc;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Segoe UI',sans-serif;
+    display:flex;
+    background:var(--bg);
+    color:var(--text);
+}
+
+.sidebar{
+    width:250px;
+    height:100vh;
+    background:var(--sidebar);
+    padding:20px;
+    border-right:1px solid #e2e8f0;
+}
+
+.menu-item{
+    display:block;
+    padding:12px 0;
+    text-decoration:none;
+    color:#64748b;
+    font-weight:600;
+}
+
+.menu-item:hover{
+    color:var(--blue);
+}
+
+#port-submenu{
+    display:none;
+    padding-left:15px;
+}
+
+.port-sub-item{
+    display:block;
+    padding:6px 0;
+    text-decoration:none;
+    color:#64748b;
+    cursor:pointer;
+}
+
+.port-sub-item:hover{
+    color:var(--blue);
+}
+
+.dashboard-container{
+    flex:1;
+    padding:30px;
+}
+
+h1{
+    margin-bottom:20px;
+}
+
+#map{
+    height:600px;
+    width:100%;
+    border-radius:12px;
+    border:1px solid #e2e8f0;
+}
+</style>
+
 </head>
+
 <body>
 
 <aside class="sidebar">
-    <h3>HH Port System</h3>
-    <a href="index.html" class="menu-item">Dashboard</a>
-    <a href="#" class="menu-item" onclick="toggleSubmenu()">Analytics ▾</a>
-    <div id="port-submenu"></div>
-    <a href="about.html" class="menu-item">About</a>
-    <a href="settings.html" class="menu-item">Settings</a>
+    <h2>HH Port System</h2>
+    <br>
+
+```
+<a href="index.html" class="menu-item">Dashboard</a>
+
+<a href="#" class="menu-item" onclick="toggleSubmenu()">
+    Analytics ▾
+</a>
+
+<div id="port-submenu"></div>
+
+<a href="about.html" class="menu-item">About</a>
+<a href="settings.html" class="menu-item">Settings</a>
+```
+
 </aside>
 
 <main class="dashboard-container">
-    <h1>Port Analytics Map</h1>
+    <h1>Global Port Analytics</h1>
     <div id="map"></div>
 </main>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
-    // 1. Initialize map with constraints
-    const map = L.map('map', { worldCopyJump: false, maxBounds: [[-90, -180], [90, 180]] }).setView([20, 0], 2);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { noWrap: true, minZoom: 2 }).addTo(map);
 
-    let markers = [];
-    let dataRefreshInterval;
+const map = L.map('map').setView([20,0],2);
 
-    function toggleSubmenu() {
-        const sub = document.getElementById('port-submenu');
-        sub.style.display = sub.style.display === 'block' ? 'none' : 'block';
-    }
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{
+    maxZoom:18
+}
+).addTo(map);
 
-    // 2. Fetch data and update BOTH map and sidebar
-    async function refreshData() {
-        try {
-            const res = await fetch('/api/analytics');
-            const ports = await res.json();
+let markers=[];
 
-            // Update Sidebar
-            const sub = document.getElementById('port-submenu');
-            sub.innerHTML = ''; 
-            ports.forEach(p => {
-                const a = document.createElement('a');
-                a.className = 'port-sub-item';
-                a.innerText = p.port_name;
-                a.href = 'details.html';
-                a.onclick = () => localStorage.setItem('selectedPort', p.port_name);
-                sub.appendChild(a);
-            });
+const shipIcon=L.icon({
+    iconUrl:'https://cdn-icons-png.flaticon.com/512/3056/3056797.png',
+    iconSize:[35,35]
+});
 
-            // Update Map
-            markers.forEach(m => map.removeLayer(m));
-            markers = [];
-            ports.forEach(p => {
-                if (p.lat && p.lng) {
-                    const marker = L.marker([p.lat, p.lng]).addTo(map);
-                    marker.bindPopup(`<b>${p.port_name}</b><br><a href="details.html" onclick="localStorage.setItem('selectedPort', '${p.port_name}')">View Details</a>`);
-                    markers.push(marker);
-                }
-            });
-        } catch (err) { console.error("Error refreshing data:", err); }
-    }
-    async function loadMapMarkers() {
-    try {
-        const res = await fetch('/api/analytics');
-        const ports = await res.json();
-        
-        // Remove existing markers before drawing new ones
-        markers.forEach(m => map.removeLayer(m));
-        markers = [];
+function toggleSubmenu(){
+    const sub=document.getElementById('port-submenu');
 
-        ports.forEach(p => {
-            if (p.lat && p.lng) {
-                const marker = L.marker([p.lat, p.lng]).addTo(map);
-                marker.bindPopup(`<b>${p.port_name}</b>`);
-                markers.push(marker);
-            }
-        });
-    } catch (err) {
-        console.error("Error loading markers:", err);
+    if(sub.style.display==="block"){
+        sub.style.display="none";
+    }else{
+        sub.style.display="block";
     }
 }
-    // 3. Init
-    async function init() {
-        const path = window.location.pathname;
-        const pageName = path.split('/').pop() || 'index.html';
-        document.querySelectorAll('.menu-item').forEach(link => {
-            if(link.getAttribute('href') === pageName) {
-                link.style.color = 'var(--blue)';
-                link.style.borderLeft = '4px solid var(--blue)';
+
+async function refreshData(){
+
+    try{
+
+        const response=await fetch('/api/analytics');
+        const ports=await response.json();
+
+        markers.forEach(m=>map.removeLayer(m));
+        markers=[];
+
+        const submenu=document.getElementById('port-submenu');
+        submenu.innerHTML='';
+
+        const bounds=[];
+
+        ports.forEach(port=>{
+
+            const item=document.createElement('a');
+
+            item.className='port-sub-item';
+            item.innerText=port.port_name;
+            item.href='details.html';
+
+            item.onclick=()=>{
+                localStorage.setItem(
+                    'selectedPort',
+                    port.port_name
+                );
+            };
+
+            submenu.appendChild(item);
+
+            if(
+                port.lat===null ||
+                port.lng===null ||
+                port.lat===undefined ||
+                port.lng===undefined
+            ){
+                return;
             }
+
+            const lat=parseFloat(port.lat);
+            const lng=parseFloat(port.lng);
+
+            bounds.push([lat,lng]);
+
+            const marker=L.marker(
+                [lat,lng],
+                {icon:shipIcon}
+            ).addTo(map);
+
+            marker.bindPopup(`
+                <div style="text-align:center">
+                    <h3>${port.port_name}</h3>
+
+                    <button
+                    onclick="
+                    localStorage.setItem(
+                    'selectedPort',
+                    '${port.port_name}'
+                    );
+                    window.location.href='details.html';
+                    "
+                    style="
+                    background:#0ea5e9;
+                    color:white;
+                    border:none;
+                    padding:8px 14px;
+                    border-radius:6px;
+                    cursor:pointer;
+                    ">
+                    Analytics
+                    </button>
+                </div>
+            `);
+
+            markers.push(marker);
+
         });
 
-        await refreshData();
-        const refreshRate = parseInt(localStorage.getItem('userRefresh')) || 5;
-        dataRefreshInterval = setInterval(refreshData, refreshRate * 60000);
-    }
+        if(bounds.length>0){
 
-    init();
+            map.fitBounds(bounds,{
+                padding:[50,50]
+            });
+
+            for(let i=0;i<bounds.length-1;i++){
+
+                L.polyline(
+                    [
+                        bounds[i],
+                        bounds[i+1]
+                    ],
+                    {
+                        color:'#0ea5e9',
+                        weight:2,
+                        opacity:0.6
+                    }
+                ).addTo(map);
+
+            }
+        }
+
+    }catch(error){
+        console.error(error);
+    }
+}
+
+refreshData();
+
 </script>
+
 </body>
 </html>
