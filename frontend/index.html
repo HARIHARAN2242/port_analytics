@@ -126,9 +126,11 @@ L.tileLayer(
 
 let markers=[];
 
-const shipIcon=L.icon({
-    iconUrl:'https://cdn-icons-png.flaticon.com/512/3056/3056797.png',
-    iconSize:[35,35]
+const anchorIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+    iconSize: [30, 30],
+    iconAnchor: [15, 30],
+    popupAnchor: [0, -30]
 });
 
 function toggleSubmenu(){
