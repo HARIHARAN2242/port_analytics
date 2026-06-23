@@ -24,4 +24,5 @@ async function loadPorts() {
         grid.appendChild(box);
     });
 }
+
 loadPorts();
