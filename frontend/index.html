@@ -8,71 +8,12 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <style>
-    .hero-banner{
-    height:170px;
-    width:100%;
-    border-radius:16px;
-    margin-bottom:25px;
 
-    background:
-    linear-gradient(
-        rgba(0,0,0,0.45),
-        rgba(0,0,0,0.45)
-    ),
-    url('https://images.unsplash.com/photo-1500375592092-40eb2168fd21');
-
-    background-size:cover;
-    background-position:center;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    box-shadow:
-    0 8px 25px rgba(0,0,0,0.15);
-}
-
-.hero-overlay{
-    text-align:center;
-}
-
-.main-title{
-    color:white;
-    font-size:48px;
-    font-weight:800;
-    letter-spacing:2px;
-
-    text-transform:uppercase;
-
-    text-shadow:
-    2px 2px 8px rgba(0,0,0,0.5);
-}
-
-.subtitle{
-    color:#e0f2fe;
-    font-size:18px;
-    margin-top:10px;
-    letter-spacing:1px;
-}
-
-.anchor-marker{
-    font-size:28px;
-    text-align:center;
-    line-height:30px;
-    background:transparent;
-    border:none;
-}
-
-.leaflet-tooltip{
-    font-weight:bold;
-    font-size:14px;
-    border-radius:8px;
-}
 :root{
-    --bg:#ffffff;
+    --bg:#f8fafc;
     --text:#0f172a;
     --blue:#0ea5e9;
-    --sidebar:#f8fafc;
+    --sidebar:#ffffff;
 }
 
 *{
@@ -88,6 +29,8 @@ body{
     color:var(--text);
 }
 
+/* Sidebar */
+
 .sidebar{
     width:250px;
     height:100vh;
@@ -95,6 +38,12 @@ body{
     padding:20px;
     border-right:1px solid #e2e8f0;
     overflow-y:auto;
+    box-shadow:0 0 15px rgba(0,0,0,0.05);
+}
+
+.sidebar h2{
+    color:var(--blue);
+    margin-bottom:10px;
 }
 
 .menu-item{
@@ -103,10 +52,12 @@ body{
     text-decoration:none;
     color:#64748b;
     font-weight:600;
+    transition:0.3s;
 }
 
 .menu-item:hover{
     color:var(--blue);
+    padding-left:5px;
 }
 
 #port-submenu{
@@ -126,22 +77,68 @@ body{
     color:var(--blue);
 }
 
+/* Main Content */
+
 .dashboard-container{
     flex:1;
     padding:30px;
 }
 
-h1{
-    margin-bottom:20px;
-    color:#0f172a;
+/* Hero Banner */
+
+.hero-banner{
+    height:140px;
+    width:100%;
+    border-radius:18px;
+    margin-bottom:25px;
+
+    background:
+    linear-gradient(
+        rgba(0,0,0,0.55),
+        rgba(0,0,0,0.55)
+    ),
+    url('https://images.unsplash.com/photo-1518527989017-5baca7a58d3c?auto=format&fit=crop&w=1600&q=80');
+
+    background-size:cover;
+    background-position:center;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    box-shadow:
+    0 8px 25px rgba(0,0,0,0.15);
 }
+
+.hero-overlay{
+    text-align:center;
+}
+
+.main-title{
+    color:white;
+    font-size:34px;
+    font-weight:700;
+    letter-spacing:1px;
+}
+
+.subtitle{
+    color:#dbeafe;
+    font-size:15px;
+    margin-top:8px;
+}
+
+/* Map */
 
 #map{
     height:650px;
     width:100%;
-    border-radius:12px;
+    border-radius:16px;
     border:1px solid #e2e8f0;
+    box-shadow:
+    0 5px 20px rgba(0,0,0,0.08);
 }
+
+/* Anchor Markers */
 
 .anchor-marker{
     font-size:28px;
@@ -154,89 +151,75 @@ h1{
 .leaflet-tooltip{
     font-weight:bold;
     font-size:14px;
+    border-radius:8px;
 }
 
+/* Dashboard Cards */
+
+.stats-container{
+    margin-top:25px;
+
+    display:grid;
+    grid-template-columns:
+    repeat(auto-fit,minmax(220px,1fr));
+
+    gap:20px;
+}
+
+.stat-card{
+    background:white;
+    border-radius:14px;
+    padding:24px;
+    text-align:center;
+
+    border:1px solid #e2e8f0;
+
+    box-shadow:
+    0 4px 12px rgba(0,0,0,0.06);
+
+    transition:0.3s;
+}
+
+.stat-card:hover{
+    transform:translateY(-5px);
+}
+
+.stat-icon{
+    font-size:34px;
+    margin-bottom:12px;
+}
+
+.stat-card h3{
+    color:#0ea5e9;
+    margin-bottom:8px;
+}
+
+.stat-card p{
+    color:#475569;
+    font-weight:600;
+}
+
+/* Responsive */
+
 @media(max-width:768px){
+
     .sidebar{
         display:none;
     }
-}
 
-.ocean-container{
-    margin-top:25px;
-    height:100px;
-    width:100%;
-    background:linear-gradient(
-        to bottom,
-        #38bdf8,
-        #0284c7
-    );
-
-    border-radius:12px;
-    overflow:hidden;
-    position:relative;
-}
-
-.ship{
-    position:absolute;
-    top:20px;
-    left:-80px;
-
-    font-size:48px;
-
-    animation:sailShip 18s linear infinite;
-}
-
-.wave{
-    position:absolute;
-    width:200%;
-    height:100%;
-
-    background:
-    repeating-linear-gradient(
-        -45deg,
-        rgba(255,255,255,0.15),
-        rgba(255,255,255,0.15) 15px,
-        transparent 15px,
-        transparent 30px
-    );
-
-    animation:waveMove 8s linear infinite;
-}
-
-@keyframes sailShip{
-    0%{
-        left:-80px;
-        transform:translateY(0px);
+    .dashboard-container{
+        padding:15px;
     }
 
-    25%{
-        transform:translateY(-5px);
+    .main-title{
+        font-size:26px;
     }
 
-    50%{
-        transform:translateY(3px);
-    }
-
-    75%{
-        transform:translateY(-4px);
-    }
-
-    100%{
-        left:100%;
-        transform:translateY(0px);
+    #map{
+        height:500px;
     }
 }
 
-@keyframes waveMove{
-    from{
-        transform:translateX(0);
-    }
-
-    to{
-        transform:translateX(-200px);
-    }
-}
 </style>
 </head>
 
@@ -270,20 +253,43 @@ h1{
 
 <main class="dashboard-container">
 
-    <div class="hero-banner">
+<div class="hero-banner">
     <div class="hero-overlay">
-        <h1 class="main-title">⚓ Global Port Analytics</h1>
+        <h1 class="main-title">Maritime Analytics Dashboard</h1>
         <p class="subtitle">
-            Real-Time Maritime Intelligence Dashboard
+            Global Port Intelligence & Operational Monitoring
         </p>
     </div>
 </div>
 
     <div id="map"></div>
-    <div class="ocean-container">
-        <div class="wave"></div>
-        <div class="ship">🚢</div>
+    <div class="stats-container">
+
+    <div class="stat-card">
+        <div class="stat-icon">⚓</div>
+        <h3>Ports Tracked</h3>
+        <p id="portCount">0</p>
     </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <h3>Analytics</h3>
+        <p>Real-Time</p>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">🌍</div>
+        <h3>Coverage</h3>
+        <p>Global</p>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">🚢</div>
+        <h3>Status</h3>
+        <p>Live Monitoring</p>
+    </div>
+
+</div>
 
 
 </main>
