@@ -1,432 +1,459 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HH Port Analytics</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HH Port Analytics</title>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-<style>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --blue: #0ea5e9;
+            --sidebar: #ffffff;
+        }
 
-:root{
-    --bg:#f8fafc;
-    --text:#0f172a;
-    --blue:#0ea5e9;
-    --sidebar:#ffffff;
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            background: var(--bg);
+            color: var(--text);
+        }
 
-body{
-    font-family:'Segoe UI',sans-serif;
-    display:flex;
-    background:var(--bg);
-    color:var(--text);
-}
+        /* Sidebar */
 
-/* Sidebar */
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background: var(--sidebar);
+            padding: 20px;
+            border-right: 1px solid #e2e8f0;
+            overflow-y: auto;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
 
-.sidebar{
-    width:250px;
-    height:100vh;
-    background:var(--sidebar);
-    padding:20px;
-    border-right:1px solid #e2e8f0;
-    overflow-y:auto;
-    box-shadow:0 0 15px rgba(0,0,0,0.05);
-}
+        .sidebar h2 {
+            color: var(--blue);
+            margin-bottom: 10px;
+        }
 
-.sidebar h2{
-    color:var(--blue);
-    margin-bottom:10px;
-}
+        .menu-item {
+            display: block;
+            padding: 12px 0;
+            text-decoration: none;
+            color: #64748b;
+            font-weight: 600;
+            transition: 0.3s;
+        }
 
-.menu-item{
-    display:block;
-    padding:12px 0;
-    text-decoration:none;
-    color:#64748b;
-    font-weight:600;
-    transition:0.3s;
-}
+        .menu-item:hover {
+            color: var(--blue);
+            padding-left: 5px;
+        }
 
-.menu-item:hover{
-    color:var(--blue);
-    padding-left:5px;
-}
+        #port-submenu {
+            display: none;
+            padding-left: 15px;
+        }
 
-#port-submenu{
-    display:none;
-    padding-left:15px;
-}
+        .port-sub-item {
+            display: block;
+            padding: 6px 0;
+            text-decoration: none;
+            color: #64748b;
+            cursor: pointer;
+        }
 
-.port-sub-item{
-    display:block;
-    padding:6px 0;
-    text-decoration:none;
-    color:#64748b;
-    cursor:pointer;
-}
+        .port-sub-item:hover {
+            color: var(--blue);
+        }
 
-.port-sub-item:hover{
-    color:var(--blue);
-}
+        /* Main Content */
 
-/* Main Content */
+        .dashboard-container {
+            flex: 1;
+            padding: 30px;
+        }
 
-.dashboard-container{
-    flex:1;
-    padding:30px;
-}
+        /* Hero Banner */
 
-/* Hero Banner */
+        .hero-banner {
+            height: 140px;
+            width: 100%;
+            border-radius: 18px;
+            margin-bottom: 25px;
 
-.hero-banner{
-    height:140px;
-    width:100%;
-    border-radius:18px;
-    margin-bottom:25px;
+            background:
+                linear-gradient(rgba(0, 0, 0, 0.55),
+                    rgba(0, 0, 0, 0.55)),
+                url('https://images.unsplash.com/photo-1518527989017-5baca7a58d3c?auto=format&fit=crop&w=1600&q=80');
 
-    background:
-    linear-gradient(
-        rgba(0,0,0,0.55),
-        rgba(0,0,0,0.55)
-    ),
-    url('https://images.unsplash.com/photo-1518527989017-5baca7a58d3c?auto=format&fit=crop&w=1600&q=80');
+            background-size: cover;
+            background-position: center;
 
-    background-size:cover;
-    background-position:center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
+            box-shadow:
+                0 8px 25px rgba(0, 0, 0, 0.15);
+        }
 
-    box-shadow:
-    0 8px 25px rgba(0,0,0,0.15);
-}
+        .hero-overlay {
+            text-align: center;
+        }
 
-.hero-overlay{
-    text-align:center;
-}
+        .main-title {
+            color: white;
+            font-size: 34px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
 
-.main-title{
-    color:white;
-    font-size:34px;
-    font-weight:700;
-    letter-spacing:1px;
-}
+        .subtitle {
+            color: #dbeafe;
+            font-size: 15px;
+            margin-top: 8px;
+        }
 
-.subtitle{
-    color:#dbeafe;
-    font-size:15px;
-    margin-top:8px;
-}
+        /* Map */
 
-/* Map */
+        #map {
+            height: 650px;
+            width: 100%;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow:
+                0 5px 20px rgba(0, 0, 0, 0.08);
+        }
 
-#map{
-    height:650px;
-    width:100%;
-    border-radius:16px;
-    border:1px solid #e2e8f0;
-    box-shadow:
-    0 5px 20px rgba(0,0,0,0.08);
-}
+        /* Anchor Markers */
 
-/* Anchor Markers */
+        .anchor-marker {
+            font-size: 28px;
+            text-align: center;
+            line-height: 30px;
+            background: transparent;
+            border: none;
+        }
 
-.anchor-marker{
-    font-size:28px;
-    text-align:center;
-    line-height:30px;
-    background:transparent;
-    border:none;
-}
+        .leaflet-tooltip {
+            font-weight: bold;
+            font-size: 14px;
+            border-radius: 8px;
+        }
 
-.leaflet-tooltip{
-    font-weight:bold;
-    font-size:14px;
-    border-radius:8px;
-}
+        /* Dashboard Cards */
 
-/* Dashboard Cards */
+        .stats-container {
+            margin-top: 25px;
 
-.stats-container{
-    margin-top:25px;
+            display: grid;
+            grid-template-columns:
+                repeat(auto-fit, minmax(220px, 1fr));
 
-    display:grid;
-    grid-template-columns:
-    repeat(auto-fit,minmax(220px,1fr));
+            gap: 20px;
+        }
 
-    gap:20px;
-}
+        .stat-card {
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            text-align: center;
 
-.stat-card{
-    background:white;
-    border-radius:14px;
-    padding:24px;
-    text-align:center;
+            border: 1px solid #e2e8f0;
 
-    border:1px solid #e2e8f0;
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.06);
 
-    box-shadow:
-    0 4px 12px rgba(0,0,0,0.06);
+            transition: 0.3s;
+        }
 
-    transition:0.3s;
-}
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
 
-.stat-card:hover{
-    transform:translateY(-5px);
-}
+        .stat-icon {
+            font-size: 34px;
+            margin-bottom: 12px;
+        }
 
-.stat-icon{
-    font-size:34px;
-    margin-bottom:12px;
-}
+        .stat-card h3 {
+            color: #0ea5e9;
+            margin-bottom: 8px;
+        }
 
-.stat-card h3{
-    color:#0ea5e9;
-    margin-bottom:8px;
-}
+        .stat-card p {
+            color: #475569;
+            font-weight: 600;
+        }
 
-.stat-card p{
-    color:#475569;
-    font-weight:600;
-}
+        /* Responsive */
 
-/* Responsive */
+        @media(max-width:768px) {
 
-@media(max-width:768px){
+            .sidebar {
+                display: none;
+            }
 
-    .sidebar{
-        display:none;
-    }
+            .dashboard-container {
+                padding: 15px;
+            }
 
-    .dashboard-container{
-        padding:15px;
-    }
+            .main-title {
+                font-size: 26px;
+            }
 
-    .main-title{
-        font-size:26px;
-    }
-
-    #map{
-        height:500px;
-    }
-}
-
-</style>
+            #map {
+                height: 500px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<aside class="sidebar">
+    <aside class="sidebar">
 
-    <h2>HH Port System</h2>
+        <h2>HH Port System</h2>
 
-    <br>
+        <br>
 
-    <a href="index.html" class="menu-item">
-        Dashboard
-    </a>
+        <a href="index.html" class="menu-item">
+            Dashboard
+        </a>
 
-    <a href="#" class="menu-item" onclick="toggleSubmenu()">
-        Analytics ▾
-    </a>
+        <a href="#" class="menu-item" onclick="toggleSubmenu()">
+            Analytics ▾
+        </a>
 
-    <div id="port-submenu"></div>
+        <div id="port-submenu"></div>
 
-    <a href="about.html" class="menu-item">
-        About
-    </a>
+        <a href="about.html" class="menu-item">
+            About
+        </a>
 
-    <a href="settings.html" class="menu-item">
-        Settings
-    </a>
+        <a href="settings.html" class="menu-item">
+            Settings
+        </a>
 
-</aside>
+    </aside>
 
-<main class="dashboard-container">
+    <main class="dashboard-container">
 
-<div class="hero-banner">
-    <div class="hero-overlay">
-        <h1 class="main-title">Maritime Analytics Dashboard</h1>
-        <p class="subtitle">
-            Global Port Intelligence & Operational Monitoring
-        </p>
-    </div>
-</div>
+        <div class="hero-banner">
+            <div class="hero-overlay">
+                <h1 class="main-title">Maritime Analytics Dashboard</h1>
+                <p class="subtitle">
+                    Global Port Intelligence & Operational Monitoring
+                </p>
+            </div>
+        </div>
 
-    <div id="map"></div>
-    <div class="stats-container">
+        <div id="map"></div>
+        <div class="stats-container">
 
-    <div class="stat-card">
-        <div class="stat-icon">⚓</div>
-        <h3>Ports Tracked</h3>
-        <p id="portCount">0</p>
-    </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚓</div>
+                <h3>Ports Tracked</h3>
+                <p id="portCount">0</p>
+            </div>
 
-    <div class="stat-card">
-        <div class="stat-icon">📊</div>
-        <h3>Analytics</h3>
-        <p>Real-Time</p>
-    </div>
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <h3>Analytics</h3>
+                <p>Real-Time</p>
+            </div>
 
-    <div class="stat-card">
-        <div class="stat-icon">🌍</div>
-        <h3>Coverage</h3>
-        <p>Global</p>
-    </div>
+            <div class="stat-card">
+                <div class="stat-icon">🌍</div>
+                <h3>Coverage</h3>
+                <p>Global</p>
+            </div>
 
-    <div class="stat-card">
-        <div class="stat-icon">🚢</div>
-        <h3>Status</h3>
-        <p>Live Monitoring</p>
-    </div>
+            <div class="stat-card">
+                <div class="stat-icon">🚢</div>
+                <h3>Status</h3>
+                <p>Live Monitoring</p>
+            </div>
 
-</div>
+        </div>
 
 
-</main>
+    </main>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<script>
+    <script>
 
-// Fixed world map
-const map = L.map('map', {
-    worldCopyJump: false,
-    maxBounds: [
-        [-90, -180],
-        [90, 180]
-    ],
-    maxBoundsViscosity: 1.0,
-    minZoom: 2
-}).setView([15, 55], 3);
+        // Fixed world map
+        const map = L.map('map', {
+            worldCopyJump: false,
+            maxBounds: [
+                [-90, -180],
+                [90, 180]
+            ],
+            maxBoundsViscosity: 1.0,
+            minZoom: 2
+        }).setView([15, 55], 3);
 
-// Non-repeating map
-L.tileLayer(
-    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    {
-        noWrap: true,
-        minZoom: 2,
-        maxZoom: 8,
-        attribution: '&copy; OpenStreetMap'
-    }
-).addTo(map);
+        // Non-repeating map
+        L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+                noWrap: true,
+                minZoom: 2,
+                maxZoom: 8,
+                attribution: '&copy; OpenStreetMap'
+            }
+        ).addTo(map);
 
-let markers = [];
+        let markers = [];
+        // 1. Define the ship icon
+        const shipIcon = L.icon({
+            iconUrl: 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcSg_f4UUE08zJiLYeHQaKjmGjf6KK6LzR8LPoj5MzBSNbMs-uitwfVKN1Bcn0V7.png', // Replace with your white ship URL
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
 
-// Anchor emoji icon
-const anchorIcon = L.divIcon({
-    html: '<span style="font-size:28px;color:#0ea5e9;">⚓</span>',
-    className: 'anchor-marker',
-    iconSize: [30, 30],
-    iconAnchor: [15, 15]
-});
+        // 2. Define ships with start/end routes
+        const ships = [
+            { marker: L.marker([22, 39], { icon: shipIcon }).addTo(map), start: [22, 39], end: [6, 79], progress: 0 },
+            { marker: L.marker([11, 43], { icon: shipIcon }).addTo(map), start: [11, 43], end: [-20, 57], progress: 0 },
+            { marker: L.marker([24, 55], { icon: shipIcon }).addTo(map), start: [24, 55], end: [22, 69], progress: 0 }
+        ];
 
-function toggleSubmenu() {
+        // 3. Animation loop
+        function animateShips() {
+            ships.forEach(ship => {
+                ship.progress += 0.005; // Adjust this for speed
+                if (ship.progress > 1) ship.progress = 0; // Loop movement
 
-    const submenu =
-        document.getElementById('port-submenu');
+                // Linear interpolation formula
+                const lat = ship.start[0] + (ship.end[0] - ship.start[0]) * ship.progress;
+                const lng = ship.start[1] + (ship.end[1] - ship.start[1]) * ship.progress;
 
-    submenu.style.display =
-        submenu.style.display === 'block'
-            ? 'none'
-            : 'block';
-}
+                ship.marker.setLatLng([lat, lng]);
+            });
+        }
 
-async function refreshData() {
+        // Start animation: updates every 50ms
+        setInterval(animateShips, 50);  
 
-    try {
+        // Anchor emoji icon
+        const anchorIcon = L.divIcon({
+            html: '<span style="font-size:28px;color:#0ea5e9;">⚓</span>',
+            className: 'anchor-marker',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
 
-        const response =
-            await fetch('/api/analytics');
+        function toggleSubmenu() {
 
-        const ports =
-            await response.json();
-            document.getElementById('portCount').innerText = ports.length;
+            const submenu =
+                document.getElementById('port-submenu');
 
-        // Remove old markers
-        markers.forEach(marker =>
-            map.removeLayer(marker)
-        );
+            submenu.style.display =
+                submenu.style.display === 'block'
+                    ? 'none'
+                    : 'block';
+        }
 
-        markers = [];
+        async function refreshData() {
 
-        // Sidebar
-        const submenu =
-            document.getElementById('port-submenu');
+            try {
 
-        submenu.innerHTML = '';
+                const response =
+                    await fetch('/api/analytics');
 
-        ports.forEach(port => {
+                const ports =
+                    await response.json();
+                document.getElementById('portCount').innerText = ports.length;
 
-            // Sidebar item
-            const item =
-                document.createElement('a');
-
-            item.className =
-                'port-sub-item';
-
-            item.innerText =
-                port.port_name;
-
-            item.href =
-                'details.html';
-
-            item.onclick = () => {
-
-                localStorage.setItem(
-                    'selectedPort',
-                    port.port_name
+                // Remove old markers
+                markers.forEach(marker =>
+                    map.removeLayer(marker)
                 );
 
-            };
+                markers = [];
 
-            submenu.appendChild(item);
+                // Sidebar
+                const submenu =
+                    document.getElementById('port-submenu');
 
-            // Skip invalid coordinates
-            if (
-                port.lat === null ||
-                port.lng === null ||
-                port.lat === undefined ||
-                port.lng === undefined
-            ) {
-                return;
-            }
+                submenu.innerHTML = '';
 
-            const lat =
-                parseFloat(port.lat);
+                ports.forEach(port => {
 
-            const lng =
-                parseFloat(port.lng);
+                    // Sidebar item
+                    const item =
+                        document.createElement('a');
 
-            const marker =
-                L.marker(
-                    [lat, lng],
-                    {
-                        icon: anchorIcon
+                    item.className =
+                        'port-sub-item';
+
+                    item.innerText =
+                        port.port_name;
+
+                    item.href =
+                        'details.html';
+
+                    item.onclick = () => {
+
+                        localStorage.setItem(
+                            'selectedPort',
+                            port.port_name
+                        );
+
+                    };
+
+                    submenu.appendChild(item);
+
+                    // Skip invalid coordinates
+                    if (
+                        port.lat === null ||
+                        port.lng === null ||
+                        port.lat === undefined ||
+                        port.lng === undefined
+                    ) {
+                        return;
                     }
-                ).addTo(map);
 
-            // Hover shows port name
-            marker.bindTooltip(
-                port.port_name,
-                {
-                    permanent: false,
-                    direction: 'top',
-                    offset: [0, -10]
-                }
-            );
+                    const lat =
+                        parseFloat(port.lat);
 
-            // Click popup
-            marker.bindPopup(`
+                    const lng =
+                        parseFloat(port.lng);
+
+                    const marker =
+                        L.marker(
+                            [lat, lng],
+                            {
+                                icon: anchorIcon
+                            }
+                        ).addTo(map);
+
+                    // Hover shows port name
+                    marker.bindTooltip(
+                        port.port_name,
+                        {
+                            permanent: false,
+                            direction: 'top',
+                            offset: [0, -10]
+                        }
+                    );
+
+                    // Click popup
+                    marker.bindPopup(`
                 <div style="text-align:center;">
                     <h3>${port.port_name}</h3>
 
@@ -453,31 +480,32 @@ async function refreshData() {
                 </div>
             `);
 
-            markers.push(marker);
+                    markers.push(marker);
 
-        });
+                });
 
-    }
-    catch(error){
+            }
+            catch (error) {
 
-        console.error(
-            'Error loading data:',
-            error
+                console.error(
+                    'Error loading data:',
+                    error
+                );
+
+            }
+        }
+
+        // Initial load
+        refreshData();
+
+        // Refresh every 5 minutes
+        setInterval(
+            refreshData,
+            5 * 60 * 1000
         );
 
-    }
-}
-
-// Initial load
-refreshData();
-
-// Refresh every 5 minutes
-setInterval(
-    refreshData,
-    5 * 60 * 1000
-);
-
-</script>
+    </script>
 
 </body>
+
 </html>
