@@ -335,6 +335,7 @@
         // 3. Animation loop
         function animateShips() {
             ships.forEach(ship => {
+                console.log("Animation tick - Ship positions updated");
                 ship.progress += 0.005; // Adjust this for speed
                 if (ship.progress > 1) ship.progress = 0; // Loop movement
 
@@ -369,6 +370,7 @@
         }
 
         async function refreshData() {
+            console.log("Data fetch fired - Checking API...");
 
             try {
 
