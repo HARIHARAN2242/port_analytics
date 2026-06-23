@@ -193,31 +193,37 @@ async function refreshData(){
             [lat, lng],
             { icon: anchorIcon }
             ).addTo(map);
-            marker.bindPopup(`
-                <div style="text-align:center">
-                    <h3>${port.port_name}</h3>
+            marker.bindTooltip(port.port_name, {
+    permanent: false,
+    direction: 'top',
+    offset: [0, -20]
+});
+       marker.bindPopup(`
+<div style="text-align:center;">
+    <h3>${port.port_name}</h3>
 
-                    <button
-                    onclick="
-                    localStorage.setItem(
-                    'selectedPort',
-                    '${port.port_name}'
-                    );
-                    window.location.href='details.html';
-                    "
-                    style="
-                    background:#0ea5e9;
-                    color:white;
-                    border:none;
-                    padding:8px 14px;
-                    border-radius:6px;
-                    cursor:pointer;
-                    ">
-                    Analytics
-                    </button>
-                </div>
-            `);
-
+    <button
+        onclick="
+        localStorage.setItem(
+            'selectedPort',
+            '${port.port_name}'
+        );
+        window.location.href='details.html';
+        "
+        style="
+            background:#0ea5e9;
+            color:white;
+            border:none;
+            padding:8px 15px;
+            border-radius:8px;
+            cursor:pointer;
+        "
+    >
+        Analytics
+    </button>
+</div>
+`);
+   
             markers.push(marker);
 
         });
