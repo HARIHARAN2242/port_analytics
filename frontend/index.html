@@ -469,91 +469,86 @@
 
                 const ports =
                     await response.json();
-                async function refreshData() {
+                    console.log("Ports Loaded:", ports);
 
-                    try {
+                document.getElementById("totalPorts").innerText = ports.length;
+                document.getElementById("portCount").innerText = ports.length;
 
-                        const response = await fetch('/api/analytics');
-                        const ports = await response.json();
+                // Remove old markers
+                markers.forEach(marker =>
+                    map.removeLayer(marker)
+                );
 
-                        document.getElementById("totalPorts").innerText = ports.length;
-                        document.getElementById('portCount').innerText = ports.length;
+                markers = [];
 
-                        // Remove old markers
-                        markers.forEach(marker =>
-                            map.removeLayer(marker)
+                // Sidebar
+                const submenu =
+                    document.getElementById('port-submenu');
+
+                submenu.innerHTML = '';
+
+                ports.forEach(port => {
+
+                    // Sidebar item
+                    const item =
+                        document.createElement('a');
+
+                    item.className =
+                        'port-sub-item';
+
+                    item.innerText =
+                        port.port_name;
+
+                    item.href =
+                        'details.html';
+
+                    item.onclick = () => {
+
+                        localStorage.setItem(
+                            'selectedPort',
+                            port.port_name
                         );
 
-                        markers = [];
+                    };
 
-                        // Sidebar
-                        const submenu =
-                            document.getElementById('port-submenu');
+                    submenu.appendChild(item);
 
-                        submenu.innerHTML = '';
+                    // Skip invalid coordinates
+                    if (
+                        port.lat === null ||
+                        port.lng === null ||
+                        port.lat === undefined ||
+                        port.lng === undefined
+                    ) {
+                        return;
+                    }
 
-                        ports.forEach(port => {
+                    const lat =
+                        parseFloat(port.lat);
 
-                            // Sidebar item
-                            const item =
-                                document.createElement('a');
+                    const lng =
+                        parseFloat(port.lng);
 
-                            item.className =
-                                'port-sub-item';
-
-                            item.innerText =
-                                port.port_name;
-
-                            item.href =
-                                'details.html';
-
-                            item.onclick = () => {
-
-                                localStorage.setItem(
-                                    'selectedPort',
-                                    port.port_name
-                                );
-
-                            };
-
-                            submenu.appendChild(item);
-
-                            // Skip invalid coordinates
-                            if (
-                                port.lat === null ||
-                                port.lng === null ||
-                                port.lat === undefined ||
-                                port.lng === undefined
-                            ) {
-                                return;
+                    const marker =
+                        L.marker(
+                            [lat, lng],
+                            {
+                                icon: anchorIcon
                             }
+                        ).addTo(map);
 
-                            const lat =
-                                parseFloat(port.lat);
+                    // Hover shows port name
+                    marker.bindTooltip(
+                        port.port_name,
+                        {
+                            permanent: false,
+                            direction: 'top',
+                            offset: [0, -10]
+                        }
+                    );
 
-                            const lng =
-                                parseFloat(port.lng);
-
-                            const marker =
-                                L.marker(
-                                    [lat, lng],
-                                    {
-                                        icon: anchorIcon
-                                    }
-                                ).addTo(map);
-
-                            // Hover shows port name
-                            marker.bindTooltip(
-                                port.port_name,
-                                {
-                                    permanent: false,
-                                    direction: 'top',
-                                    offset: [0, -10]
-                                }
-                            );
-
-                            // Click popup
-                            marker.bindPopup(`
+                    // Click popup
+                    marker.bindPopup(`
                 <div style="text-align:center;">
                     <h3>${port.port_name}</h3>
 
@@ -580,29 +575,29 @@
                 </div>
             `);
 
-                            markers.push(marker);
+                    markers.push(marker);
 
-                        });
+                });
 
-                    }
-                    catch (error) {
+            }
+            catch (error) {
 
-                        console.error(
-                            'Error loading data:',
-                            error
-                        );
-
-                    }
-                }
-
-                // Initial load
-                refreshData();
-
-                // Refresh every 5 minutes
-                setInterval(
-                    refreshData,
-                    5 * 60 * 1000
+                console.error(
+                    'Error loading data:',
+                    error
                 );
+
+            }
+        }
+
+        // Initial load
+        refreshData();
+
+        // Refresh every 5 minutes
+        setInterval(
+            refreshData,
+            5 * 60 * 1000
+        );
 
     </script>
 
